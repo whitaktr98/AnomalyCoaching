@@ -1,34 +1,27 @@
+// src/App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DashboardLayout from "./layout/DashboardLayout";
-// App.js (imports)
-import HomePage from "./pages/HomePage";
+import HomePageWrapper from "./pages/HomePageWrapper";
 import ClientsPage from "./pages/ClientsPage";
 import AddClientPage from "./pages/AddClientPage";
-import LoginPage from "./pages/LoginPage";
+import CoachLoginPage from "./pages/CoachLoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AddAdminPage from "./pages/AddAdminPage";
 import ClientLoginPage from "./pages/ClientLoginPage";
-import ClientDashboard from "./pages/ClientDashboard";
-import AddClientForm from "./components/AddClientForm";
 import ClientLandingPage from "./pages/ClientLandingPage";
 import ClientProtectedRoute from "./components/ClientProtectedRoute";
+import PackagesPage from "./pages/PackagesPage";
+import PublicLandingPage from "./pages/PublicLandingPage";
 
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <HomePage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
+        {/* Landing/dashboard page for logged in users */}
+         <Route path="/" element={<HomePageWrapper />} />
+        {/* other routes unchanged */}
+        
+        
         <Route
           path="/clients"
           element={
@@ -39,6 +32,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/add-client"
           element={
@@ -49,56 +43,32 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Client login page */}
+        <Route path="/client-login" element={<ClientLoginPage />} />
+
+        {/* Client dashboard */}
         <Route
-  path="/client-dashboard"
-  element={
-    <ClientProtectedRoute>
-      <ClientLandingPage />
-    </ClientProtectedRoute>
-  }
-/>
-          <Route
-    path="/client-dashboard"
-    element={
-      <ClientProtectedRoute>
-        <ClientDashboard />
-      </ClientProtectedRoute>
-    }
-  />
-    <Route
-  path="/add-client"
-  element={
-    <ProtectedRoute>
-      <AddClientForm />
-    </ProtectedRoute>
-  }
-/>
-        <Route 
-        path="/client-login" 
-        element={
-        <ClientLoginPage />
-        }
-         />
+          path="/client-dashboard"
+          element={
+            <ClientProtectedRoute>
+              <ClientLandingPage />
+            </ClientProtectedRoute>
+          }
+        />
         <Route
-  path="/add-client"
+  path="/packages"
   element={
-    <ProtectedRoute>
+    
       <DashboardLayout>
-        <AddClientPage />
+        <PackagesPage />
       </DashboardLayout>
-    </ProtectedRoute>
+    
   }
 />
-        <Route
-  path="/add-admin"
-  element={
-    <ProtectedRoute>
-      <DashboardLayout>
-        <AddAdminPage />
-      </DashboardLayout>
-    </ProtectedRoute>
-  }
-/>
+
+        {/* Coach login page */}
+        <Route path="/coach-login" element={<CoachLoginPage />} />
       </Routes>
     </Router>
   );

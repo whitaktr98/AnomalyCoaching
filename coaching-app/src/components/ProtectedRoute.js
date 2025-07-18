@@ -6,12 +6,11 @@ import { auth } from "../firebase";
 export default function ProtectedRoute({ children }) {
   const [user, loading] = useAuthState(auth);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    // Redirect to public landing page or login page if not authenticated
+    return <Navigate to="/public-landing" replace />;
   }
 
   return children;

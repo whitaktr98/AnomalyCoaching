@@ -23,7 +23,7 @@ export default function LoginPage() {
     <Container maxWidth="sm">
       <Paper sx={{ p: 4, mt: 8 }}>
         <Typography variant="h4" gutterBottom>
-          Admin Login
+          Coach Login
         </Typography>
         <Box component="form" onSubmit={handleLogin}>
           <TextField

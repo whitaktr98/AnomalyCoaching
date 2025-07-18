@@ -78,6 +78,13 @@ export default function DashboardLayout({ children }) {
             >
               Home
             </Button>
+             <Button
+              color="inherit"
+              component={Link}
+              to="/coach-login"
+            >
+              Coach Login
+            </Button>
              {/* New Client Login Button */}
             <Button
               color="inherit"
@@ -102,7 +109,7 @@ export default function DashboardLayout({ children }) {
               onClick={() => {
                 localStorage.removeItem("isAuthenticated");
                 auth.signOut();
-                window.location.href = "/login";
+                window.location.href = "/";
               }}
             >
               Logout

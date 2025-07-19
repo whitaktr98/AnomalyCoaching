@@ -10,7 +10,9 @@ import ClientLoginPage from "./pages/ClientLoginPage";
 import ClientLandingPage from "./pages/ClientLandingPage";
 import ClientProtectedRoute from "./components/ClientProtectedRoute";
 import PackagesPage from "./pages/PackagesPage";
-import PublicLandingPage from "./pages/PublicLandingPage";
+import CreateWorkoutPlanPage from "./pages/CreateWorkoutPlanPage";
+import AddAdminForm from "./components/AddAdminForm";
+//import PublicLandingPage from "./pages/PublicLandingPage";
 
 
 function App() {
@@ -32,6 +34,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/create-coach"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AddAdminForm />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/add-client"
@@ -43,6 +55,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/create-workout"
+         element={
+         <ProtectedRoute>
+         <DashboardLayout>
+        <CreateWorkoutPlanPage />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
 
         {/* Client login page */}
         <Route path="/client-login" element={<ClientLoginPage />} />

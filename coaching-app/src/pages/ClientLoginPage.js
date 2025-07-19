@@ -10,16 +10,19 @@ export default function ClientLoginPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/client-dashboard");
-    } catch {
-      setError("Invalid email or password");
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  console.log("Logging in with", email);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    console.log("Login success, navigating...");
+    navigate("/client-dashboard");
+  } catch (err) {
+    console.error("Login failed:", err);
+    setError("Invalid email or password");
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "auto", marginTop: 60 }}>

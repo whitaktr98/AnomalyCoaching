@@ -8,6 +8,8 @@ import {
   query,
   orderBy,
   onSnapshot,
+  where,
+  getDocs,
   Timestamp,
 } from "firebase/firestore";
 import {
@@ -21,6 +23,7 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Paper,
 } from "@mui/material";
 
 import { signOut } from "firebase/auth";
@@ -32,6 +35,9 @@ export default function ClientLandingPage() {
 
   const [progressEntries, setProgressEntries] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(true);
+
+  const [workoutPlans, setWorkoutPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
 
   const [newNote, setNewNote] = useState("");
   const [newWeight, setNewWeight] = useState("");
@@ -79,6 +85,31 @@ export default function ClientLandingPage() {
     return () => unsubscribe();
   }, []);
 
+  // NEW: Fetch workout plans for this client
+  useEffect(() => {
+    const fetchWorkoutPlans = async () => {
+      if (!auth.currentUser) {
+        setLoadingPlans(false);
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(db, "workoutPlans"),
+          where("clientId", "==", auth.currentUser.uid)
+        );
+        const snapshot = await getDocs(q);
+        const plans = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setWorkoutPlans(plans);
+      } catch (error) {
+        console.error("Error fetching workout plans:", error);
+      }
+      setLoadingPlans(false);
+    };
+
+    fetchWorkoutPlans();
+  }, []);
+
   const handleAddProgress = async () => {
     if (!newNote.trim()) return;
 
@@ -101,7 +132,7 @@ export default function ClientLandingPage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/");  // redirect to homepage
+      navigate("/"); // redirect to homepage
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -127,7 +158,9 @@ export default function ClientLandingPage() {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 6, mb: 6 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+      <Box
+        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}
+      >
         <Typography variant="h4" gutterBottom>
           Welcome, {clientData.firstName || auth.currentUser.email}!
         </Typography>
@@ -215,6 +248,40 @@ export default function ClientLandingPage() {
             </React.Fragment>
           ))}
         </List>
+      )}
+
+      {/* NEW: Workout Plans Section */}
+      <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+        Your Workout Plans
+      </Typography>
+      {loadingPlans ? (
+        <Box textAlign="center">
+          <CircularProgress />
+        </Box>
+      ) : workoutPlans.length === 0 ? (
+        <Typography>No workout plans assigned yet.</Typography>
+      ) : (
+        workoutPlans.map((plan) => (
+          <Paper key={plan.id} sx={{ p: 2, mb: 3, backgroundColor: "#fafafa" }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              {plan.planName}
+            </Typography>
+            {plan.exercises && plan.exercises.length > 0 ? (
+              <List dense>
+                {plan.exercises.map((ex, idx) => (
+                  <ListItem key={idx} divider>
+                    <ListItemText
+                      primary={`${ex.name} — Sets: ${ex.sets}, Reps: ${ex.reps}`}
+                      secondary={ex.notes || ""}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography>No exercises found for this plan.</Typography>
+            )}
+          </Paper>
+        ))
       )}
     </Container>
   );

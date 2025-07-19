@@ -31,6 +31,7 @@ export default function ClientsPage() {
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
+            <th>Coach's Name</th>
             <th>Goals</th>
             <th>Start Date</th>
           </tr>
@@ -41,6 +42,7 @@ export default function ClientsPage() {
               <td>{client.firstName + " " + client.lastName || "N/A"}</td>
               <td>{client.email || "N/A"}</td>
               <td>{client.phone || "N/A"}</td>
+              <td>{client.coachName || "N/A"}</td>
               <td>{client.goals || "N/A"}</td>
               <td>{client.startDate && client.startDate.toDate? client.startDate.toDate().toLocaleDateString(): "N/A"}</td>
             </tr>

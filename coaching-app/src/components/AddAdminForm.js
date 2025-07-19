@@ -5,9 +5,12 @@ import { doc, setDoc } from "firebase/firestore";
 
 export default function AddAdminForm() {
   const [formData, setFormData] = useState({
+    coachId: "",
+    coachName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    role: ""
   });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
@@ -24,9 +27,12 @@ export default function AddAdminForm() {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    await setDoc(doc(db, "users", user.uid), {
+    await setDoc(doc(db, "coach", user.uid), {
       email,
-      role: "admin",
+      password,
+      coachName: formData.coachName,
+      coachId: user.uid,
+      role: "coach",
       createdAt: new Date(),
     });
 
@@ -54,7 +60,7 @@ export default function AddAdminForm() {
 
   return (
     <div style={{ maxWidth: 400, margin: "2rem auto", padding: "1rem", border: "1px solid #ccc", borderRadius: 8 }}>
-      <h3>Add New Admin</h3>
+      <h3>Add New Coach</h3>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
           <label>Email</label>
@@ -93,6 +99,17 @@ export default function AddAdminForm() {
             style={{ width: "100%", padding: 8, marginTop: 4 }}
           />
         </div>
+        <div style={{ marginBottom: 12 }}>
+          <label>Coach Name</label>
+          <input
+            type="text"
+            name="coachName"
+            required
+            value={formData.coachName}
+            onChange={handleChange}
+            style={{ width: "100%", padding: 8, marginTop: 4 }}
+          />
+        </div>
 
         <button
           type="submit"
@@ -105,7 +122,7 @@ export default function AddAdminForm() {
             cursor: "pointer",
           }}
         >
-          {loading ? "Registering..." : "Register Admin"}
+          {loading ? "Registering..." : "Register Coach"}
         </button>
       </form>
 

@@ -1,9 +1,7 @@
-// src/components/AddClientForm.js
 import React, { useState } from "react";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
-
+import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore";
 import {
   Box,
   Button,
@@ -19,54 +17,76 @@ export default function AddClientForm() {
     lastName: "",
     email: "",
     password: "",
+    coachName: "",  // add coachName here
     phone: "",
     goals: "",
   });
+
   const [status, setStatus] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus({ type: "", message: "" });
-    setLoading(true);
 
-    try {
-      // 1. Create Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      const user = userCredential.user;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setStatus({ type: "", message: "" });
+  setLoading(true);
 
-      // 2. Save client profile in Firestore
-      await setDoc(doc(db, "clients", user.uid), {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        goals: formData.goals,
-        startDate: new Date(),
-      });
+  try {
+    // 1. Create Firebase Auth user
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      formData.email,
+      formData.password
+    );
+    const user = userCredential.user; // this has the uid
 
-      setStatus({ type: "success", message: "Client registered successfully!" });
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        phone: "",
-        goals: "",
-      });
-    } catch (error) {
-      setStatus({ type: "error", message: error.message });
+    // 2. Find coach UID by coachName
+    const coachQuery = query(
+      collection(db, "coach"),
+      where("coachName", "==", formData.coachName)
+    );
+    const coachSnapshot = await getDocs(coachQuery);
+
+    if (coachSnapshot.empty) {
+      throw new Error(`Coach with name "${formData.coachName}" not found`);
     }
 
-    setLoading(false);
-  };
+    const coachDoc = coachSnapshot.docs[0];
+    const coachId = coachDoc.id; // coach UID
+
+    // 3. Save client profile in Firestore using setDoc with user.uid as doc ID
+    await setDoc(doc(db, "clients", user.uid), {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      coachId,          // link to coach UID
+      coachName: formData.coachName,
+      phone: formData.phone,
+      goals: formData.goals,
+      startDate: new Date(),
+      clientId: user.uid, // optional, but consistent with doc id
+    });
+
+    setStatus({ type: "success", message: "Client registered successfully!" });
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      coachName: "",
+      phone: "",
+      goals: "",
+    });
+  } catch (error) {
+    setStatus({ type: "error", message: error.message });
+  }
+
+  setLoading(false);
+};
 
   return (
     <Box
@@ -128,6 +148,17 @@ export default function AddClientForm() {
         fullWidth
         margin="normal"
         helperText="Minimum 6 characters"
+      />
+
+      {/* Coach's Name input */}
+      <TextField
+        label="Coach's Name"
+        name="coachName"
+        value={formData.coachName}
+        onChange={handleChange}
+        required
+        fullWidth
+        margin="normal"
       />
 
       <TextField

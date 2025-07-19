@@ -43,6 +43,7 @@ export default function PublicLandingPage() {
           justifyContent="center"
           sx={{ mt: 3 }}
         >
+          {/*
           <Button
             variant="contained"
             color="secondary"
@@ -52,7 +53,7 @@ export default function PublicLandingPage() {
           >
             Client Login
           </Button>
-
+*/}
           <Button
             variant="outlined"
             color="inherit"

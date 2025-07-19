@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db, secondaryAuth } from "../firebase";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore";
+
 import {
   Box,
   Button,
@@ -17,7 +18,7 @@ export default function AddClientForm() {
     lastName: "",
     email: "",
     password: "",
-    coachName: "",  // add coachName here
+    coachName: "",
     phone: "",
     goals: "",
   });
@@ -28,65 +29,67 @@ export default function AddClientForm() {
   const handleChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: "", message: "" });
+    setLoading(true);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setStatus({ type: "", message: "" });
-  setLoading(true);
+    try {
+      // Create a secondary Auth instance that doesn't affect current user
+      const secondaryAppAuth = getAuth(auth.app);
 
-  try {
-    // 1. Create Firebase Auth user
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      formData.email,
-      formData.password
-    );
-    const user = userCredential.user; // this has the uid
+      // 1. Create the new client in Firebase Auth (does NOT affect current session)
+      const userCredential = await createUserWithEmailAndPassword(
+  secondaryAuth,
+  formData.email,
+  formData.password
+);
+      const user = userCredential.user;
 
-    // 2. Find coach UID by coachName
-    const coachQuery = query(
-      collection(db, "coach"),
-      where("coachName", "==", formData.coachName)
-    );
-    const coachSnapshot = await getDocs(coachQuery);
+      // 2. Get coach ID based on coachName
+      const coachQuery = query(
+        collection(db, "coach"),
+        where("coachName", "==", formData.coachName)
+      );
+      const coachSnapshot = await getDocs(coachQuery);
 
-    if (coachSnapshot.empty) {
-      throw new Error(`Coach with name "${formData.coachName}" not found`);
+      if (coachSnapshot.empty) {
+        throw new Error(`Coach with name "${formData.coachName}" not found`);
+      }
+
+      const coachDoc = coachSnapshot.docs[0];
+      const coachId = coachDoc.id;
+
+      // 3. Save client profile in Firestore
+      await setDoc(doc(db, "clients", user.uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        coachId,
+        coachName: formData.coachName,
+        phone: formData.phone,
+        goals: formData.goals,
+        startDate: new Date(),
+        clientId: user.uid,
+      });
+
+      setStatus({ type: "success", message: "Client registered successfully!" });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        coachName: "",
+        phone: "",
+        goals: "",
+      });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message });
     }
 
-    const coachDoc = coachSnapshot.docs[0];
-    const coachId = coachDoc.id; // coach UID
-
-    // 3. Save client profile in Firestore using setDoc with user.uid as doc ID
-    await setDoc(doc(db, "clients", user.uid), {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      password: formData.password,
-      coachId,          // link to coach UID
-      coachName: formData.coachName,
-      phone: formData.phone,
-      goals: formData.goals,
-      startDate: new Date(),
-      clientId: user.uid, // optional, but consistent with doc id
-    });
-
-    setStatus({ type: "success", message: "Client registered successfully!" });
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      coachName: "",
-      phone: "",
-      goals: "",
-    });
-  } catch (error) {
-    setStatus({ type: "error", message: error.message });
-  }
-
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   return (
     <Box
@@ -150,7 +153,6 @@ const handleSubmit = async (e) => {
         helperText="Minimum 6 characters"
       />
 
-      {/* Coach's Name input */}
       <TextField
         label="Coach's Name"
         name="coachName"

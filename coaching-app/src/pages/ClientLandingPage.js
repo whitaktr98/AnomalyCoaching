@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
+import React, { useEffect, useState, useMemo } from "react";
+import { auth, db, storage } from "../firebase";
+
 import {
   doc,
   getDoc,
@@ -8,7 +9,6 @@ import {
   query,
   orderBy,
   onSnapshot,
-  where,
   getDocs,
   Timestamp,
 } from "firebase/firestore";
@@ -28,6 +28,19 @@ import {
 
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { ref, getDownloadURL } from "firebase/storage";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine,
+} from "recharts";
 
 export default function ClientLandingPage() {
   const [clientData, setClientData] = useState(null);
@@ -41,6 +54,8 @@ export default function ClientLandingPage() {
 
   const [newNote, setNewNote] = useState("");
   const [newWeight, setNewWeight] = useState("");
+  const [pdfUrls, setPdfUrls] = useState({});
+  const [openPdfPlanId, setOpenPdfPlanId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -64,7 +79,7 @@ export default function ClientLandingPage() {
     if (!auth.currentUser) return;
 
     const progressRef = collection(db, "clients", auth.currentUser.uid, "progress");
-    const q = query(progressRef, orderBy("date", "desc"));
+    const q = query(progressRef, orderBy("date", "asc")); // ascending for chart timeline
 
     const unsubscribe = onSnapshot(
       q,
@@ -85,26 +100,44 @@ export default function ClientLandingPage() {
     return () => unsubscribe();
   }, []);
 
-  // NEW: Fetch workout plans for this client
   useEffect(() => {
-    const fetchWorkoutPlans = async () => {
-      if (!auth.currentUser) {
-        setLoadingPlans(false);
-        return;
+    const fetchPdfUrls = async () => {
+      const urls = {};
+
+      for (const plan of workoutPlans) {
+        if (plan.workoutPlanUrl) {
+          try {
+            const fileRef = ref(storage, plan.workoutPlanUrl);
+            const downloadUrl = await getDownloadURL(fileRef);
+            urls[plan.id] = downloadUrl;
+          } catch (error) {
+            console.error(`Failed to fetch PDF URL for plan ${plan.id}:`, error);
+          }
+        }
       }
 
+      setPdfUrls(urls);
+    };
+
+    if (workoutPlans.length > 0) {
+      fetchPdfUrls();
+    }
+  }, [workoutPlans]);
+
+  useEffect(() => {
+    const fetchWorkoutPlans = async () => {
+      if (!auth.currentUser) return;
+
       try {
-        const q = query(
-          collection(db, "workoutPlans"),
-          where("clientId", "==", auth.currentUser.uid)
-        );
-        const snapshot = await getDocs(q);
+        const plansRef = collection(db, "clients", auth.currentUser.uid, "workoutPlans");
+        const snapshot = await getDocs(plansRef);
         const plans = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setWorkoutPlans(plans);
       } catch (error) {
         console.error("Error fetching workout plans:", error);
+      } finally {
+        setLoadingPlans(false);
       }
-      setLoadingPlans(false);
     };
 
     fetchWorkoutPlans();
@@ -137,6 +170,69 @@ export default function ClientLandingPage() {
       console.error("Logout error:", error);
     }
   };
+
+  const togglePdfViewer = (planId) => {
+    setOpenPdfPlanId((prev) => (prev === planId ? null : planId));
+  };
+
+  // Prepare weight progress data for chart
+  const weightData = useMemo(() => {
+    if (!clientData) return [];
+
+    const data = [];
+
+    // Add starting weight with a date 1 day before first progress entry or today
+    const firstProgressDate =
+      progressEntries.length > 0
+        ? new Date(progressEntries[0].date.seconds * 1000)
+        : new Date();
+
+    const startingWeightDate = new Date(firstProgressDate);
+    startingWeightDate.setDate(startingWeightDate.getDate() - 1);
+
+    if (clientData.startingWeight) {
+      data.push({
+        date: startingWeightDate.toISOString().split("T")[0],
+        weight: clientData.startingWeight,
+        label: "Starting Weight",
+      });
+    }
+
+    // Add progress entries sorted by ascending date
+    const sortedProgress = [...progressEntries].sort(
+      (a, b) => a.date.seconds - b.date.seconds
+    );
+
+    sortedProgress.forEach((entry) => {
+      if (entry.weight !== null && entry.weight !== undefined) {
+        data.push({
+          date: new Date(entry.date.seconds * 1000).toISOString().split("T")[0],
+          weight: entry.weight,
+          label: entry.note || "",
+        });
+      }
+    });
+
+    // Add current weight as last point if different from last progress entry
+    const lastEntryWeight =
+      sortedProgress.length > 0
+        ? sortedProgress[sortedProgress.length - 1].weight
+        : null;
+
+    if (
+      clientData.currentWeight &&
+      clientData.currentWeight !== lastEntryWeight &&
+      clientData.currentWeight !== clientData.startingWeight
+    ) {
+      data.push({
+        date: new Date().toISOString().split("T")[0],
+        weight: clientData.currentWeight,
+        label: "Current Weight",
+      });
+    }
+
+    return data;
+  }, [clientData, progressEntries]);
 
   if (loadingClient) {
     return (
@@ -173,6 +269,54 @@ export default function ClientLandingPage() {
         Track your progress below and add new updates anytime.
       </Typography>
 
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="body1">
+          <strong>Starting Weight:</strong> {clientData.startingWeight ?? "N/A"} lbs
+        </Typography>
+        <Typography variant="body1">
+          <strong>Current Weight:</strong> {clientData.currentWeight ?? "N/A"} lbs
+        </Typography>
+        <Typography variant="body1">
+          <strong>Target Weight:</strong> {clientData.targetWeight ?? "N/A"} lbs
+        </Typography>
+      </Box>
+
+      {/* Weight Progress Chart */}
+      {weightData.length > 1 && (
+        <Box sx={{ height: 300, mb: 12 }}>
+          <Typography variant="h6" gutterBottom>
+            Weight Progress Over Time
+          </Typography>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={weightData}
+              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis domain={["dataMin - 10", "dataMax + 10"]} />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="weight"
+                stroke="#8884d8"
+                activeDot={{ r: 8 }}
+                name="Weight (lbs)"
+              />
+              {clientData.targetWeight && (
+                <ReferenceLine
+                  y={clientData.targetWeight}
+                  label={`Target Weight (${clientData.targetWeight} lbs)`}
+                  stroke="green"
+                  strokeDasharray="3 3"
+                />
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      )}
+<></>
       {/* Progress Entry Form */}
       <Box
         sx={{
@@ -250,10 +394,11 @@ export default function ClientLandingPage() {
         </List>
       )}
 
-      {/* NEW: Workout Plans Section */}
+      {/* Workout Plans PDF Section */}
       <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
         Your Workout Plans
       </Typography>
+
       {loadingPlans ? (
         <Box textAlign="center">
           <CircularProgress />
@@ -264,21 +409,42 @@ export default function ClientLandingPage() {
         workoutPlans.map((plan) => (
           <Paper key={plan.id} sx={{ p: 2, mb: 3, backgroundColor: "#fafafa" }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              {plan.planName}
+              {plan.planName || "Workout Plan"}
             </Typography>
-            {plan.exercises && plan.exercises.length > 0 ? (
-              <List dense>
-                {plan.exercises.map((ex, idx) => (
-                  <ListItem key={idx} divider>
-                    <ListItemText
-                      primary={`${ex.name} — Sets: ${ex.sets}, Reps: ${ex.reps}`}
-                      secondary={ex.notes || ""}
+
+            {pdfUrls[plan.id] ? (
+              <>
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={() => togglePdfViewer(plan.id)}
+                  sx={{ mt: 1, mb: 1 }}
+                >
+                  {openPdfPlanId === plan.id ? "Hide PDF" : "View PDF"}
+                </Button>
+                {openPdfPlanId === plan.id && (
+                  <Box
+                    sx={{
+                      border: "1px solid #ccc",
+                      borderRadius: 1,
+                      height: 500,
+                      overflow: "auto",
+                    }}
+                  >
+                    <iframe
+                      src={pdfUrls[plan.id]}
+                      width="100%"
+                      height="100%"
+                      title={`Workout Plan PDF - ${plan.planName}`}
+                      style={{ border: "none" }}
                     />
-                  </ListItem>
-                ))}
-              </List>
+                  </Box>
+                )}
+              </>
             ) : (
-              <Typography>No exercises found for this plan.</Typography>
+              <Typography sx={{ mt: 1 }} variant="body2" color="text.secondary">
+                No PDF uploaded for this plan.
+              </Typography>
             )}
           </Paper>
         ))

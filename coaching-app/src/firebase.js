@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAeY99x3_ygSRc9dgQrYlRoGkd-Hp7FZFc",
@@ -13,12 +14,14 @@ const firebaseConfig = {
   measurementId: "G-RLYHS6YYBM",
 };
 
-// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-// Initialize Firebase Authentication and export it
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-// Initialize analytics (optional)
-export const analytics = getAnalytics(app);
+// 🔒 Initialize secondary app for isolated user creation (e.g., clients)
+const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+const secondaryAuth = getAuth(secondaryApp);
 
+// Export everything
+export { app, auth, db, storage, secondaryAuth };

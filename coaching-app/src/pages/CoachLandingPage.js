@@ -13,20 +13,15 @@ export default function CoachLandingPage() {
       </Typography>
 
       <Stack spacing={2} direction="column" sx={{ mt: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/create-workout")}
-        >
-          Create Workout Plan
-        </Button>
+        
 
+        
         <Button
           variant="contained"
           color="primary"
-          onClick={() => navigate("/create-coach")}
+          onClick={() => navigate("/clients")}
         >
-          Create New Coach Login
+          View Active Clients
         </Button>
       </Stack>
     </Box>

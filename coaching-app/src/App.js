@@ -12,7 +12,7 @@ import ClientProtectedRoute from "./components/ClientProtectedRoute";
 import PackagesPage from "./pages/PackagesPage";
 import CreateWorkoutPlanPage from "./pages/CreateWorkoutPlanPage";
 import AddAdminForm from "./components/AddAdminForm";
-//import PublicLandingPage from "./pages/PublicLandingPage";
+import PublicLandingPage from "./pages/PublicLandingPage";
 
 
 function App() {
@@ -42,6 +42,16 @@ function App() {
                 <AddAdminForm />
               </DashboardLayout>
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/public-landing"
+          element={
+            
+              <DashboardLayout>
+                <PublicLandingPage />
+              </DashboardLayout>
+            
           }
         />
 

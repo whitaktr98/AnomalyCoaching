@@ -78,6 +78,15 @@ export default function DashboardLayout({ children }) {
             >
               Home
             </Button>
+            <Button
+              color="inherit"
+              startIcon={<Group />}
+              component={Link}
+              to="/create-coach"
+            >
+              Create New Coach
+            </Button>
+            {/*}
              <Button
               color="inherit"
               component={Link}
@@ -85,7 +94,9 @@ export default function DashboardLayout({ children }) {
             >
               Coach Login
             </Button>
+            */}
              {/* New Client Login Button */}
+             {/*}
             <Button
               color="inherit"
               component={Link}
@@ -93,6 +104,7 @@ export default function DashboardLayout({ children }) {
             >
               Client Login
             </Button>
+            */}
 
             {/* Clients Dropdown */}
             <Button

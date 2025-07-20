@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }) {
               component="div"
               sx={{ ml: 3, fontStyle: "italic" }}
             >
-              {userEmail ? `Logged in as: ${userEmail}` : "Not logged in"}
+              {userEmail ? `Logged in as: ${userEmail}` : "You are not logged in"}
             </Typography>
 
             {/* Home */}

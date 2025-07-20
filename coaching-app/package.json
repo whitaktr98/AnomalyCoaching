@@ -2,7 +2,7 @@
   "name": "coaching-app",
   "version": "0.1.0",
   "private": true,
-  "homepahe": "https://whitaktr98.github.io/anomalycoaching",
+  "homepage": "https://whitaktr98.github.io/anomalycoaching",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",

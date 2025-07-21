@@ -64,6 +64,28 @@ export default function AddAdminForm() {
       <h3>Add New Coach</h3>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
+          <label>Coach First Name</label>
+          <input
+            type="text"
+            name="coachName"
+            required
+            value={formData.coachFirstName}
+            onChange={handleChange}
+            style={{ width: "100%", padding: 8, marginTop: 4 }}
+          />
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <label>Coach Last Name</label>
+          <input
+            type="text"
+            name="coachName"
+            required
+            value={formData.coachLastName}
+            onChange={handleChange}
+            style={{ width: "100%", padding: 8, marginTop: 4 }}
+          />
+        </div>
+        <div style={{ marginBottom: 12 }}>
           <label>Email</label>
           <input
             type="email"
@@ -100,28 +122,7 @@ export default function AddAdminForm() {
             style={{ width: "100%", padding: 8, marginTop: 4 }}
           />
         </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Coach First Name</label>
-          <input
-            type="text"
-            name="coachName"
-            required
-            value={formData.coachFirstName}
-            onChange={handleChange}
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Coach Last Name</label>
-          <input
-            type="text"
-            name="coachName"
-            required
-            value={formData.coachLastName}
-            onChange={handleChange}
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </div>
+        
 
         <button
           type="submit"

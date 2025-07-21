@@ -52,7 +52,7 @@ export default function AddAdminForm() {
     try {
       await registerAdmin(formData.email, formData.password);
       setStatus("✅ Admin registered successfully!");
-      setFormData({ email: "", password: "", confirmPassword: "" });
+      setFormData({ coachFirstName: "", coachLastName: "", email: "", password: "", confirmPassword: "" });
     } catch (error) {
       setStatus(`❌ Error: ${error.message}`);
     }

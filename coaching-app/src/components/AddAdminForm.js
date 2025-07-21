@@ -67,7 +67,7 @@ export default function AddAdminForm() {
           <label>Coach First Name</label>
           <input
             type="text"
-            name="coachName"
+            name="coachFirstName"
             required
             value={formData.coachFirstName}
             onChange={handleChange}
@@ -78,7 +78,7 @@ export default function AddAdminForm() {
           <label>Coach Last Name</label>
           <input
             type="text"
-            name="coachName"
+            name="coachLastName"
             required
             value={formData.coachLastName}
             onChange={handleChange}

@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
-import { Container, TextField, Button, Typography, Paper, Box } from "@mui/material";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase"; // Make sure 'db' is your Firestore export
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Box,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
@@ -11,11 +19,28 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check Firestore for "coach" record with matching UID
+      const coachRef = doc(db, "coach", user.uid);
+      const coachSnap = await getDoc(coachRef);
+
+      if (!coachSnap.exists()) {
+        // Not a coach — sign out and block access
+        await signOut(auth);
+        alert("Access denied. This login is for coaches only.");
+        return;
+      }
+
+      // ✅ Coach verified — allow access
       navigate("/");
     } catch (error) {
-      alert("Invalid credentials");
+      console.error("Login failed:", error);
+      alert("Invalid credentials or access denied.");
     }
   };
 

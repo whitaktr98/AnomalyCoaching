@@ -37,7 +37,7 @@ export default function LoginPage() {
       }
 
       // ✅ Coach verified — allow access
-      navigate("/coach-dashboard");
+      navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
       alert("Invalid credentials or access denied.");

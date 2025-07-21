@@ -110,7 +110,7 @@ export default function ClientsPage() {
 const handleFileUpload = async (clientId, file) => {
   if (!file) return;
 
-  const isPdf = file.type === "application/pdf";
+  const isPdf = file.type === "application/pdf, image*";
   const isImage = file.type.startsWith("image/");
 
   if (!isPdf && !isImage) {

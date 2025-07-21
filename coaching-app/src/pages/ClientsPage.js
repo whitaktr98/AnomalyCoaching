@@ -110,7 +110,7 @@ export default function ClientsPage() {
 const handleFileUpload = async (clientId, file) => {
   if (!file) return;
 
-  const isPdf = file.type === "application/pdf, image*";
+  const isPdf = file.type === "application/pdf";
   const isImage = file.type.startsWith("image/");
 
   if (!isPdf && !isImage) {
@@ -276,7 +276,7 @@ const handleFileUpload = async (clientId, file) => {
                             {uploadingIds[client.id] ? "Uploading..." : "Re-upload PDF"}
                             <input
                               type="file"
-                              accept="application/pdf, image/*"
+                              accept="application/pdf,image*"
                               hidden
                               onChange={(e) => {
                                 const file = e.target.files[0];
@@ -296,7 +296,7 @@ const handleFileUpload = async (clientId, file) => {
                         {uploadingIds[client.id] ? "Uploading..." : "Upload PDF"}
                         <input
                           type="file"
-                          accept="application/pdf"
+                          accept="application/pdf,image*"
                           hidden
                           onChange={(e) => {
                             const file = e.target.files[0];
@@ -386,7 +386,7 @@ const handleFileUpload = async (clientId, file) => {
                         {uploadingIds[client.id] ? "Uploading..." : "Re-upload PDF"}
                         <input
                           type="file"
-                          accept="application/pdf"
+                          accept="application/pdf,image*"
                           hidden
                           onChange={(e) => {
                             const file = e.target.files[0];
@@ -407,7 +407,7 @@ const handleFileUpload = async (clientId, file) => {
                     {uploadingIds[client.id] ? "Uploading..." : "Upload PDF"}
                     <input
                       type="file"
-                      accept="application/pdf"
+                      accept="application/pdf,image*"
                       hidden
                       onChange={(e) => {
                         const file = e.target.files[0];

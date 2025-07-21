@@ -107,38 +107,44 @@ export default function ClientsPage() {
     return "";
   };
 
-  const handleFileUpload = async (clientId, file) => {
-    if (!file) return;
+const handleFileUpload = async (clientId, file) => {
+  if (!file) return;
 
-    if (file.type !== "application/pdf") {
-      alert("Please upload a PDF file.");
-      return;
-    }
+  const isPdf = file.type === "application/pdf";
+  const isImage = file.type.startsWith("image/");
 
-    setUploadingIds((prev) => ({ ...prev, [clientId]: true }));
+  if (!isPdf && !isImage) {
+    alert("Please upload a PDF or image file.");
+    return;
+  }
 
-    try {
-      const storageRef = ref(storage, `workoutPlans/${clientId}/plan.pdf`);
-      await uploadBytes(storageRef, file);
-      const downloadUrl = await getDownloadURL(storageRef);
+  setUploadingIds((prev) => ({ ...prev, [clientId]: true }));
 
-      const clientRef = doc(db, "clients", clientId);
-      await updateDoc(clientRef, { workoutPlanUrl: downloadUrl });
+  try {
+    const fileExtension = file.name.split(".").pop();
+    const fileName = isPdf ? "plan.pdf" : `plan.${fileExtension}`;
+    const storageRef = ref(storage, `workoutPlans/${clientId}/${fileName}`);
 
-      setClients((prev) =>
-        prev.map((client) =>
-          client.id === clientId ? { ...client, workoutPlanUrl: downloadUrl } : client
-        )
-      );
+    await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(storageRef);
 
-      alert("Workout plan uploaded successfully!");
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert(`Failed to upload workout plan: ${error.message || error}`);
-    } finally {
-      setUploadingIds((prev) => ({ ...prev, [clientId]: false }));
-    }
-  };
+    const clientRef = doc(db, "clients", clientId);
+    await updateDoc(clientRef, { workoutPlanUrl: downloadUrl });
+
+    setClients((prev) =>
+      prev.map((client) =>
+        client.id === clientId ? { ...client, workoutPlanUrl: downloadUrl } : client
+      )
+    );
+
+    alert(`${isPdf ? "PDF" : "Image"} uploaded successfully!`);
+  } catch (error) {
+    console.error("Upload error:", error);
+    alert(`Failed to upload file: ${error.message || error}`);
+  } finally {
+    setUploadingIds((prev) => ({ ...prev, [clientId]: false }));
+  }
+};
 
   const handleDeletePdf = async (clientId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this workout plan PDF?");
@@ -270,7 +276,7 @@ export default function ClientsPage() {
                             {uploadingIds[client.id] ? "Uploading..." : "Re-upload PDF"}
                             <input
                               type="file"
-                              accept="application/pdf"
+                              accept="application/pdf, image/*"
                               hidden
                               onChange={(e) => {
                                 const file = e.target.files[0];

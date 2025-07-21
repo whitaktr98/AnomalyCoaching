@@ -30,7 +30,8 @@ export default function AddAdminForm() {
     await setDoc(doc(db, "coach", user.uid), {
       email,
       password,
-      coachName: formData.coachName,
+      coachFirstName: formData.coachFirstName,
+      coachLastName: formData.coachLastName,
       coachId: user.uid,
       role: "coach",
       createdAt: new Date(),
@@ -100,12 +101,23 @@ export default function AddAdminForm() {
           />
         </div>
         <div style={{ marginBottom: 12 }}>
-          <label>Coach Name</label>
+          <label>Coach First Name</label>
           <input
             type="text"
             name="coachName"
             required
-            value={formData.coachName}
+            value={formData.coachFirstName}
+            onChange={handleChange}
+            style={{ width: "100%", padding: 8, marginTop: 4 }}
+          />
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <label>Coach Last Name</label>
+          <input
+            type="text"
+            name="coachName"
+            required
+            value={formData.coachLastName}
             onChange={handleChange}
             style={{ width: "100%", padding: 8, marginTop: 4 }}
           />

@@ -1,5 +1,5 @@
 // src/App.js
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import DashboardLayout from "./layout/DashboardLayout";
 import HomePageWrapper from "./pages/HomePageWrapper";
 import ClientsPage from "./pages/ClientsPage";
